@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { PessoaInDTO } from './dtos/pessoa-in.dto';
 import { PessoaOutDTO } from './dtos/pessoa-out.dto';
 import { PessoaEntity } from './entity/pessoa.entity';
@@ -20,17 +21,19 @@ export class PessoaService {
     return listPessoaDTO;
   }
 
-  create(dto: PessoaInDTO): PessoaOutDTO {
+  async post(dto: PessoaInDTO): Promise<PessoaOutDTO> {
     const entity: PessoaEntity = new PessoaEntity();
-    entity.id = this.pessoaBD.length + 1;
     entity.nome = dto.nome;
     entity.nascimento = dto.nascimento;
-    this.pessoaBD.push(entity);
+    const prisma = new PrismaClient({ log: ['query'] });
+    const newEntity: PessoaEntity = await prisma.pessoaEntity.create({
+      data: entity,
+    });
 
     const dtoOut: PessoaOutDTO = new PessoaOutDTO();
-    dtoOut.id = entity.id;
-    dtoOut.nome = entity.nome;
-    dtoOut.faixaEtaria = this.verificaFaixaEtaria(entity.nascimento);
+    dtoOut.id = newEntity.id;
+    dtoOut.nome = newEntity.nome;
+    dtoOut.faixaEtaria = this.verificaFaixaEtaria(newEntity.nascimento);
     return dtoOut;
   }
 
@@ -48,6 +51,10 @@ export class PessoaService {
     dtoOut.faixaEtaria = this.verificaFaixaEtaria(entity.nascimento);
 
     return dtoOut;
+  }
+
+  delete(id: number): void {
+    this.pessoaBD.splice(id - 1, 1);
   }
 
   verificaFaixaEtaria(nascimento: string): string {
