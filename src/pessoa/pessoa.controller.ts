@@ -16,8 +16,13 @@ export class PessoaController {
   constructor(private service: PessoaService) {}
 
   @Get()
-  get(): PessoaOutDTO[] {
-    return this.service.get();
+  async getAll(): Promise<PessoaOutDTO[]> {
+    return await this.service.getAll();
+  }
+
+  @Get('/:id')
+  async get(@Param('id') id: string): Promise<PessoaOutDTO> {
+    return await this.service.get(parseInt(id));
   }
 
   @Post()
@@ -26,8 +31,11 @@ export class PessoaController {
   }
 
   @Put('/:id')
-  update(@Param('id') id: number, @Body() dto: PessoaInDTO): PessoaOutDTO {
-    return this.service.update(id, dto);
+  async update(
+    @Param('id') id: string,
+    @Body() dto: PessoaInDTO,
+  ): Promise<PessoaOutDTO> {
+    return await this.service.update(parseInt(id), dto);
   }
 
   @Delete('/:id')
